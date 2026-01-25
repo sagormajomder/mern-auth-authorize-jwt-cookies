@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import { connectDB } from './config/db.js';
@@ -15,6 +16,7 @@ app.use(
   }),
 );
 app.use(express.json());
+app.use(cookieParser());
 
 // Server Root Route
 app.get('/', (req, res) => {

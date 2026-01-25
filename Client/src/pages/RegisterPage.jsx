@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
+import { Link } from 'react-router';
 import { useAxiosSecure } from '../hooks/useAxiosSecure';
 export default function RegisterPage() {
   const {
@@ -37,7 +38,7 @@ export default function RegisterPage() {
 
       <form
         action=''
-        className='space-y-2'
+        className='space-y-2 mb-5'
         onSubmit={handleSubmit(handleRegisterForm)}>
         {/* Name */}
         <div className='flex gap-2 items-center'>
@@ -119,6 +120,11 @@ export default function RegisterPage() {
           Register
         </button>
       </form>
+      <Link
+        className='py-2 px-5 bg-orange-400 text-white rounded-md'
+        to='/login'>
+        Login here
+      </Link>
     </div>
   );
 }
