@@ -10,19 +10,28 @@ const secureInstance = axios.create({
 export function useAxiosSecure() {
   const navigate = useNavigate();
 
-  useEffect(function () {
-    const resIntercepter = secureInstance.interceptors.response.use(
-      response => {
-        return response;
-      },
-      error => {
-        console.log(error);
-      },
-    );
+  useEffect(
+    function () {
+      const resIntercepter = secureInstance.interceptors.response.use(
+        response => response,
+        error => {
+          console.log('Error of Interceptor:', error);
+          const statusCode = error.response.status;
+          console.log(statusCode);
 
-    return () => {
-      secureInstance.interceptors.response.eject(resIntercepter);
-    };
-  }, []);
+          if (statusCode === 401 || statusCode === 403) {
+            console.log('Authentication failed');
+
+            navigate('/login');
+          }
+        },
+      );
+
+      return () => {
+        secureInstance.interceptors.response.eject(resIntercepter);
+      };
+    },
+    [navigate],
+  );
   return secureInstance;
 }

@@ -1,10 +1,19 @@
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useAxiosSecure } from '../hooks/useAxiosSecure';
 
 export default function LoginPage() {
   const axiosSecure = useAxiosSecure();
+  const navigate = useNavigate();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
+
   const { mutate, isPending } = useMutation({
     mutationFn: async formData => {
       const res = await axiosSecure.post('/users/login', formData);
@@ -12,16 +21,14 @@ export default function LoginPage() {
     },
     onSuccess: data => {
       console.log('Login Successfully', data);
+      reset();
+      navigate('/dashboard');
     },
     onError: error => {
       console.log('Login failed', error);
     },
   });
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+
   function handleLoginForm(data) {
     console.log(data);
     mutate(data);

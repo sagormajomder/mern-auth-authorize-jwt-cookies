@@ -2,6 +2,14 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { collections } from '../config/db.js';
 
+export async function getUserProfile(req, res) {
+  const { email } = req.query;
+
+  const user = await collections.users.findOne({ email });
+
+  res.status(200).json(user);
+}
+
 export async function registerUser(req, res) {
   const data = req.body;
 
@@ -49,12 +57,16 @@ export async function userLogin(req, res) {
 
   const { password: _, ...withoutPasswordUser } = user;
 
-  const token = jwt.sign({ withoutPasswordUser }, process.env.JWT_SECRET, {
-    expiresIn: '1h',
-  });
+  const token = jwt.sign(
+    { user: withoutPasswordUser },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '1h',
+    },
+  );
 
   const refreshToken = jwt.sign(
-    { withoutPasswordUser },
+    { user: withoutPasswordUser },
     process.env.JWT_REFRESH_SECRET,
     {
       expiresIn: '1h',
