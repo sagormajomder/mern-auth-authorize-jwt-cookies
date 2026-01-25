@@ -91,3 +91,40 @@ export async function userLogin(req, res) {
 
   res.status(200).json({ success: true, user: withoutPasswordUser });
 }
+
+export async function refreshToken(req, res) {
+  try {
+    const { refreshToken } = req.cookies;
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: 'No refresh token provided' });
+    }
+
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET,
+      (err, decoded) => {
+        if (err) {
+          return res.status(403).json({ message: 'Invalid refresh token' });
+        }
+
+        const { user } = decoded;
+        const accessToken = jwt.sign({ user }, process.env.JWT_SECRET, {
+          expiresIn: '1h',
+        });
+
+        res.cookie('accessToken', accessToken, {
+          httpOnly: true,
+          secret: false,
+          sameSite: 'lax',
+          maxAge: 24 * 60 * 60 * 1000,
+        });
+
+        res.status(200).json({ success: true, accessToken });
+      }
+    );
+  } catch (error) {
+    console.error('Refresh Token Error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}

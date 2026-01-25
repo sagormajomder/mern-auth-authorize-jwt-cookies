@@ -14,17 +14,27 @@ export function useAxiosSecure() {
     function () {
       const resIntercepter = secureInstance.interceptors.response.use(
         response => response,
-        error => {
+        async error => {
           console.log('Error of Interceptor:', error);
-          const statusCode = error.response.status;
-          console.log(statusCode);
+          const originalRequest = error.config;
+          const statusCode = error.response ? error.response.status : null;
 
-          if (statusCode === 401 || statusCode === 403) {
-            console.log('Authentication failed');
-
+          if (statusCode === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+            try {
+              const res = await secureInstance.post('/users/refresh-token');
+              if (res.data.success) {
+                return secureInstance(originalRequest);
+              }
+            } catch (refreshError) {
+              console.error('Refresh token failed', refreshError);
+              navigate('/login');
+            }
+          } else if (statusCode === 401 || statusCode === 403) {
             navigate('/login');
           }
-        },
+          return Promise.reject(error);
+        }
       );
 
       return () => {
