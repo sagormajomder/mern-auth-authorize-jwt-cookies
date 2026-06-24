@@ -5,7 +5,14 @@ import { collections } from '../config/db.js';
 export async function getUserProfile(req, res) {
   const { email } = req.query;
 
-  const user = await collections.users.findOne({ email });
+  const user = await collections.users.findOne(
+    { email },
+    {
+      projection: {
+        password: 0,
+      },
+    },
+  );
 
   res.status(200).json(user);
 }
@@ -33,7 +40,7 @@ export async function registerUser(req, res) {
 
   const result = await collections.users.insertOne(newUser);
 
-  await res.status(201).json({ success: true, result });
+  res.status(201).json({ success: true, result });
 }
 
 export async function userLogin(req, res) {
@@ -43,7 +50,7 @@ export async function userLogin(req, res) {
 
   if (!user) {
     return res
-      .status(404)
+      .status(401)
       .json({ success: false, message: 'Invalid user email or password' });
   }
 
@@ -61,7 +68,7 @@ export async function userLogin(req, res) {
     { user: withoutPasswordUser },
     process.env.JWT_SECRET,
     {
-      expiresIn: '1h',
+      expiresIn: '15m',
     },
   );
 
@@ -69,22 +76,22 @@ export async function userLogin(req, res) {
     { user: withoutPasswordUser },
     process.env.JWT_REFRESH_SECRET,
     {
-      expiresIn: '1h',
+      expiresIn: '7d',
     },
   );
 
   // set accessToken
   res.cookie('accessToken', token, {
     httpOnly: true,
-    secret: false,
+    secure: false,
     sameSite: 'lax',
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: 15 * 60 * 1000,
   });
 
   // set refresh token
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secret: false,
+    secure: false,
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
@@ -100,29 +107,25 @@ export async function refreshToken(req, res) {
       return res.status(401).json({ message: 'No refresh token provided' });
     }
 
-    jwt.verify(
-      refreshToken,
-      process.env.JWT_REFRESH_SECRET,
-      (err, decoded) => {
-        if (err) {
-          return res.status(403).json({ message: 'Invalid refresh token' });
-        }
-
-        const { user } = decoded;
-        const accessToken = jwt.sign({ user }, process.env.JWT_SECRET, {
-          expiresIn: '1h',
-        });
-
-        res.cookie('accessToken', accessToken, {
-          httpOnly: true,
-          secret: false,
-          sameSite: 'lax',
-          maxAge: 24 * 60 * 60 * 1000,
-        });
-
-        res.status(200).json({ success: true, accessToken });
+    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(403).json({ message: 'Invalid refresh token' });
       }
-    );
+
+      const { user } = decoded;
+      const accessToken = jwt.sign({ user }, process.env.JWT_SECRET, {
+        expiresIn: '15m',
+      });
+
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 15 * 60 * 1000,
+      });
+
+      res.status(200).json({ success: true, accessToken });
+    });
   } catch (error) {
     console.error('Refresh Token Error:', error);
     res.status(500).json({ message: 'Internal server error' });

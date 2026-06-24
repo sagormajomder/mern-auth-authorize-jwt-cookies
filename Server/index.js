@@ -24,7 +24,15 @@ app.get('/', (req, res) => {
 });
 
 // Routes
-app.use(userRoutes);
+app.use('/api/v1', userRoutes);
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    massage: 'Internal Server Error',
+  });
+});
 
 async function run() {
   await connectDB();

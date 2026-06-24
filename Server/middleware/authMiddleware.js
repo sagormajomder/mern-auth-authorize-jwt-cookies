@@ -10,9 +10,7 @@ export async function verifyToken(req, res, next) {
   jwt.verify(accessToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       console.error('Middleware: JWT Verification Failed:', err.message);
-      return res
-        .status(401)
-        .send({ message: 'Unauthorized access', error: err.message });
+      return res.status(401).send({ message: 'Unauthorized access' });
     }
     req.user = decoded;
     next();
