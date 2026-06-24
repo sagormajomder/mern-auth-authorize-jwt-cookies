@@ -5,7 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "node --watch --env-file .env index.js"
+    "dev": "tsx watch --env-file=.env ./src/server.ts",
+    "build": "tsc && tsc-alias",
+    "start": "node --env-file=.env dist/server.js"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +17,18 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
-    "mongodb": "^7.3.0"
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^26.0.0",
+    "tsc-alias": "^1.8.17",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
   }
 }
