@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+const isJWTProdMin = process.env.NODE_ENV === 'production' ? 32 : 16;
+
 const envSchema = z.object({
   NODE_ENV: z
     .string()
@@ -42,12 +44,16 @@ const envSchema = z.object({
   JWT_ACCESS_SECRET: z
     .string({ error: 'JWT_ACCESS_SECRET is required' })
     .trim()
-    .min(16, { error: 'JWT_ACCESS_SECRET must be at least 16 characters' }),
+    .min(isJWTProdMin, {
+      error: `JWT_ACCESS_SECRET must be at least ${isJWTProdMin} characters`,
+    }),
 
   JWT_REFRESH_SECRET: z
     .string({ error: 'JWT_REFRESH_SECRET is required' })
     .trim()
-    .min(16, { error: 'JWT_REFRESH_SECRET must be at least 16 characters' }),
+    .min(isJWTProdMin, {
+      error: `JWT_REFRESH_SECRET must be at least ${isJWTProdMin} characters`,
+    }),
 
   JWT_ACCESS_EXPIRES_IN: z
     .string()
@@ -70,6 +76,13 @@ if (!parsedEnv.success) {
     .join('\n');
 
   console.error(`\n❌ Invalid environment variables:\n${errors}\n`);
+  process.exit(1);
+}
+
+if (parsedEnv.data.JWT_ACCESS_SECRET === parsedEnv.data.JWT_REFRESH_SECRET) {
+  console.error(
+    '❌ JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different',
+  );
   process.exit(1);
 }
 
